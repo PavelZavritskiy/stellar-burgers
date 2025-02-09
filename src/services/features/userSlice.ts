@@ -9,7 +9,7 @@ import {
   updateUserApi
 } from './../../utils/burger-api';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { deleteCookie, getCookie, setCookie } from '../../utils/cookie';
+import { deleteCookie, setCookie } from '../../utils/cookie';
 
 export const registerUser = createAsyncThunk(
   'user/registerUser',
@@ -48,13 +48,20 @@ export const logoutUser = createAsyncThunk('user/logoutUser', async () => {
 
 export const checkUserAuth = createAsyncThunk(
   'user/checkUserAuth',
-  async (_, { dispatch }) => {
-    if (getCookie('accessToken')) {
-      getUserApi()
-        .then((res) => dispatch(setUser(res.user)))
-        .finally(() => dispatch(setIsAuthChecked(true)));
-    } else {
+  async (_, { dispatch, getState }) => {
+    const { user } = (getState() as { user: IUserState }).user;
+
+    if (user) {
       dispatch(setIsAuthChecked(true));
+    } else {
+      try {
+        const res = await getUserApi();
+        dispatch(setUser(res.user));
+      } catch (error) {
+        console.error('Ошибка при проверке авторизации:', error);
+      } finally {
+        dispatch(setIsAuthChecked(true));
+      }
     }
   }
 );
@@ -85,7 +92,11 @@ export const userSlice = createSlice({
     }
   },
   selectors: {
-    getUserState: (state: IUserState) => state
+    getUserState: (state: IUserState) => state,
+    getUser: (state: IUserState) => state.user,
+    getIsAuthChecked: (state: IUserState) => state.isAuthChecked,
+    getIsLoading: (state: IUserState) => state.isLoading,
+    getError: (state: IUserState) => state.error
   },
   extraReducers: (builder) => {
     builder
@@ -148,4 +159,10 @@ export const userSlice = createSlice({
 });
 
 export const { setIsAuthChecked, setUser } = userSlice.actions;
-export const { getUserState } = userSlice.selectors;
+export const {
+  getUserState,
+  getUser,
+  getIsAuthChecked,
+  getIsLoading,
+  getError
+} = userSlice.selectors;

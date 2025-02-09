@@ -1,8 +1,16 @@
 import { orderBurgerApi } from '@api';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TOrder } from '@utils-types';
+import { resetConstructorState } from '../../services/features/constructorSlice';
 
-export const makeOrder = createAsyncThunk('order/makeOrder', orderBurgerApi);
+export const makeOrderAndResetConstructor = createAsyncThunk(
+  'order/makeOrderAndReset',
+  async (ingredients: string[], { dispatch }) => {
+    const order = await orderBurgerApi(ingredients);
+    dispatch(resetConstructorState());
+    return order;
+  }
+);
 
 interface IOrderState {
   orderModalData: TOrder | null;
@@ -28,21 +36,25 @@ export const orderSlice = createSlice({
     clearOrderData: (state) => initialState
   },
   selectors: {
-    getOrderState: (state: IOrderState) => state
+    getOrderState: (state: IOrderState) => state,
+    getOrderModalData: (state: IOrderState) => state.orderModalData,
+    getOrderRequest: (state: IOrderState) => state.orderRequest,
+    getOrder: (state: IOrderState) => state.order,
+    getIsLoading: (state: IOrderState) => state.isLoading
   },
   extraReducers: (builder) => {
     builder
-      .addCase(makeOrder.pending, (state) => {
+      .addCase(makeOrderAndResetConstructor.pending, (state) => {
         state.isLoading = true;
         state.orderRequest = true;
       })
-      .addCase(makeOrder.fulfilled, (state, action) => {
+      .addCase(makeOrderAndResetConstructor.fulfilled, (state, action) => {
         state.isLoading = false;
         state.orderRequest = false;
         state.order = action.payload.order;
         state.orderModalData = action.payload.order;
       })
-      .addCase(makeOrder.rejected, (state) => {
+      .addCase(makeOrderAndResetConstructor.rejected, (state) => {
         state.isLoading = false;
         state.orderRequest = false;
       });
@@ -50,4 +62,10 @@ export const orderSlice = createSlice({
 });
 
 export const { setOrder, clearOrderData } = orderSlice.actions;
-export const { getOrderState } = orderSlice.selectors;
+export const {
+  getOrderState,
+  getOrderModalData,
+  getOrderRequest,
+  getOrder,
+  getIsLoading
+} = orderSlice.selectors;
