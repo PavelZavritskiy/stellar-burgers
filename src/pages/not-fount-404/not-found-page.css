@@ -4,9 +4,9 @@
   align-items: center;
   height: 100vh;
   margin: 0;
-  background:url(../../images/not-found-page.jpg) no-repeat center center fixed;
-        -webkit-background-size: cover;
-        -moz-background-size: cover;
-        -o-background-size: cover;  
-        background-size: cover;
+  background: url(../../images/not-found-page.jpg) no-repeat center center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
 }
